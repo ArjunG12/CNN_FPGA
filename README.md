@@ -13,6 +13,16 @@ Description- We input the x and y coordinates of an image in count_i and count_j
 
 ## Buffer_pad_to_conv 
 
-Acts as a buffer from the padding layer to  the convolution layer. Outputs 3-pixel values simultaneously. 
+Inputs-clk, rst, c, pix
+Output-p 
+Acts as a buffer from the padding layer to  the convolution layer. Inputs 1-pixel value at a time and outputs 3-pixel values. 
 ![image](https://github.com/user-attachments/assets/3cf5292c-fc4f-47e1-9323-89319afe813e)
+(updated it such that each addr value matches with c value)
 
+## Convolution layer
+
+Inputs- clk, rst, [23:0]pix, [6:0]count_i, [6:0]count_j
+Outputs- [11:0] out_pix
+
+If count_i is given 3 values in ascending order then it will return the convolution value after the 3 values have been passed as seen in the figure.
+![image](https://github.com/user-attachments/assets/dd5c956e-c18f-42d2-b856-d364950845ee)
