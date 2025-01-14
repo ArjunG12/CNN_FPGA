@@ -23,7 +23,7 @@
 module buffer_pad_conv(
     input clk,input rst,input [1:0]c,input [7:0] pix, output reg [23:0] p
     );
-    initial p=0;
+    reg [1:0] c_1,c_2;
     
     always @(posedge clk or posedge rst)
     begin
@@ -31,20 +31,20 @@ module buffer_pad_conv(
         begin
             p<=0;
             c_1<=0;
+            c_2<=0;
         end
         else
         begin
-            case (c_1)
-                2'b00:p[7:0]=pix;
-                2'b01:p[15:8]=pix;
-                2'b10:p[23:16]=pix;
-                2'b11:p=0;
+            c_1<=c;
+            c_2<=c_1;
+            case (c)
+                2'b00:p[23:16]<=pix;
+                2'b01:p[7:0]<=pix;
+                2'b10:p[15:8]<=pix;
+                2'b11:p<=0;
             endcase
        end
     end
-    reg [1:0] c_1;
-    always @(posedge clk)
-    begin
-        c_1<=c;
-    end
+    
+    
 endmodule
