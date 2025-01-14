@@ -27,77 +27,74 @@
 //pix- output pixel at count_i and count_j wrt after padding
 //conv1_clk - clk with 1/3 freq
 //c- 3 N counter
-module padding( input clk,input rst,input [6:0] count_i,input [6:0] count_j,input [3:0] pad_x,input [3:0] pad_y, output reg [12:0] addr, output reg [1:0] c
-
-    );
+module padding(
+    input clk,
+    input rst,
+    input [6:0] count_i,
+    input [6:0] count_j,
+    input [3:0] pad_x,
+    input [3:0] pad_y,
+    output reg [12:0] addr,
+    output reg [1:0] c
+);
     reg r;
-    always@(posedge clk or posedge rst or posedge r)
-    begin
-        if (rst ) begin
-            c<=0;
-            addr<=0;
-            r<=0;
-           
-        end
-        else if (r)
-        begin
-            c<=0;
-            r<=0;
-        end
-        else
-        begin
-            case (c)
-                2'b00:c<=2'b01;
-                2'b01:c<=2'b10;
-                2'b10:c<=2'b00;
-                2'b11:c<=2'b00;
-            endcase
-        
-            if(count_i<pad_x)
-            begin
-                addr<=13'd0;
-            end
-            else if(pad_y>(2+count_j)) 
-            begin
-                addr<=13'd0;
-            end
-            else if (pad_y==(2+count_j))
-            begin
-                
+    reg [6:0] i, j;
+
+    // Main always block for state control and address calculation
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            c <= 2'b00;
+            addr <= 13'd0;
+            r <= 1'b0;
+            i <= 7'd0;
+            j <= 7'd0;
+        end else begin
+            // Detect changes in `i` or `j`
+            r <= |(i ^ count_i) | |(j ^ count_j);
+            i <= count_i;
+            j <= count_j;
+
+            // Reset `c` and `r` when `r` is asserted
+            if (r) begin
+                c <= 2'b00;
+            end else begin
+                // Update `c` cyclically
                 case (c)
-                    2'd2:addr<=13'd0;
-                    2'd0:addr<=13'd0;
-                    2'd1:addr<=count_i-pad_x+64*(count_j-pad_y+2);//read from count_i-pad_x,count_j-pad_y+2 pos
+                    2'b00: c <= 2'b01;
+                    2'b01: c <= 2'b10;
+                    2'b10: c <= 2'b00;
+                    default: c <= 2'b00;
                 endcase
-                
-            end
-            else if (pad_y==(1+count_j))
-            begin
-                
-                case (c)
-                    2'd2:addr<=13'd0;
-                    2'd0:addr<=count_i-pad_x+64*(count_j-pad_y+1);//read from count_i-pad_x,count_j+1-pad_y pos
-                    2'd1:addr<=count_i-pad_x+64*(count_j-pad_y+2);//read from count_i-pad_x,count_j+2-pad_y pos
-                endcase
-            end
-            else 
-            begin 
-                case (c)
-                    2'd2:addr<=count_i-pad_x+64*(count_j-pad_y);//read from count_i-pad_X,count_j-pad_y pos
-                    2'd0:addr<=count_i-pad_x+64*(count_j-pad_y+1);//read from count_i-pad_x,count_j-pad_y+1 pos
-                    2'd1:addr<=count_i-pad_x+64*(count_j-pad_y+2);//read from count_i-pad_x,count_j-pad_y+2 pos
-                endcase
+
+                // Address calculation based on conditions
+                if (count_i < pad_x) begin
+                    addr <= 13'd0;
+                end else if (pad_y > (2 + count_j)) begin
+                    addr <= 13'd0;
+                end else if (pad_y == (2 + count_j)) begin
+                    case (c)
+                        2'b00: addr <= 13'd0;
+                        2'b01: addr <= 13'd0;
+                        2'b10: addr <= count_i - pad_x + 64 * (count_j - pad_y + 2);
+                        default: addr <= 13'd0;
+                    endcase
+                end else if (pad_y == (1 + count_j)) begin
+                    case (c)
+                        2'b00: addr <= 13'd0;
+                        2'b01: addr <= count_i - pad_x + 64 * (count_j - pad_y + 1);
+                        2'b10: addr <= count_i - pad_x + 64 * (count_j - pad_y + 2);
+                        default: addr <= 13'd0;
+                    endcase
+                end else begin
+                    case (c)
+                        2'b00: addr <= count_i - pad_x + 64 * (count_j - pad_y);
+                        2'b01: addr <= count_i - pad_x + 64 * (count_j - pad_y + 1);
+                        2'b10: addr <= count_i - pad_x + 64 * (count_j - pad_y + 2);
+                        default: addr <= 13'd0;
+                    endcase
+                end
             end
         end
-        
     end
-    reg [6:0] i,j;
-    
-    always @(posedge clk)
-    begin
-        r=|(i^count_i) | |(j^count_j);
-        i=count_i;
-        j=count_j;
-    end
-    
 endmodule
+
