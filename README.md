@@ -26,3 +26,18 @@ Outputs- [11:0] out_pix
 
 If count_i is given 3 values in ascending order then it will return the convolution value after the 3 values have been passed as seen in the figure.
 ![image](https://github.com/user-attachments/assets/dd5c956e-c18f-42d2-b856-d364950845ee)
+
+## Counters
+There are two counters counter_in and counter_out. The image is divided into 64 small blocks of pixels and in each block, the coordinate is controlled by counter_in while counter_out controls which block we are operating on.
+
+Counter_in
+![image](https://github.com/user-attachments/assets/24478612-b44b-43ab-a073-3fffafeddea0)
+![image](https://github.com/user-attachments/assets/ac68f9e5-2709-421d-a6ae-2a5daf51b883)
+Counter_out
+![image](https://github.com/user-attachments/assets/4f4d75db-19aa-4348-93a8-2dc1c86aa1b9)
+For final i,j:
+
+final_i=outer_i*8+inner_i;
+
+final_j=outer_j*+outer_j;
+
