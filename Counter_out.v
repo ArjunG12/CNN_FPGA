@@ -21,34 +21,28 @@
 
 
 module counter_out(
-    input clk,          // Clock signal
+    input clk, 
     input en,
-    input reset,        // Reset signal
-    output reg [2:0] inner_counter, // Inner counter (3 bits: 0 to 7)
-    output reg [2:0] outer_counter  // Outer counter (3 bits: 0 to 7)
+    input rst, 
+    output reg [6:0] i, 
+    output reg [6:0] j
 );
-
-    always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            // Reset both counters to 0
-            inner_counter <= 3'b000;
-            outer_counter <= 3'b000;
-        end else if(en) begin
-            if (inner_counter == 3'b111) begin
-                // If inner counter completes its cycle
-                inner_counter <= 3'b000;  // Reset inner counter
-                if (outer_counter == 3'b111) begin
-                    // If outer counter completes its cycle
-                    outer_counter <= 3'b000;  // Reset outer counter
-                end else begin
-                    // Increment outer counter
-                    outer_counter <= outer_counter + 1;
-                end
-            end else begin
-                // Increment inner counter
-                inner_counter <= inner_counter + 1;
+    
+    always @(posedge clk or posedge rst)begin
+        if (en) begin
+            if(rst)begin
+                i<=0;
+                j<=0;
+            end
+            else if(i<7) i<=i+1;
+            else if(j<7)begin 
+                i<=0;
+                j<=j+1;
+            end
+            else begin 
+            j<=0;
+            i<=0;
             end
         end
     end
-
 endmodule
