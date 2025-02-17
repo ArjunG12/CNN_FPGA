@@ -40,4 +40,5 @@ For final i,j:
 final_i=outer_i*8+inner_i;
 
 final_j=outer_j*+outer_j;
+
 NOTE: For the current design, counter_in must be given clk with f/1024 and counter_out must be given with frequency f/16.
