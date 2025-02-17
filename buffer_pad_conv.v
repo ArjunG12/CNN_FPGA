@@ -23,20 +23,18 @@
 module buffer_pad_conv(
     input clk,input rst,input [1:0]c,input [7:0] pix, output reg [23:0] p
     );
-    reg [1:0] c_1,c_2;
+    
     
     always @(posedge clk or posedge rst)
     begin
         if (rst)
         begin
             p<=0;
-            c_1<=0;
-            c_2<=0;
+           
         end
         else
         begin
-            c_1<=c;
-            c_2<=c_1;
+            
             case (c)
                 2'b00:p[23:16]<=pix;
                 2'b01:p[7:0]<=pix;
