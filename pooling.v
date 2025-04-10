@@ -20,12 +20,19 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module pooling(input clk,input rst,input dn,input [11:0] pix,  output reg [11:0] out_pix
-    );
-    always @(posedge clk or posedge rst or posedge dn)
-    begin
-        if (rst)out_pix<=0;
-        else if (dn) out_pix<=0;
-        else if(pix>out_pix)out_pix<=pix;
+module pooling(
+    input clk,
+    input rst,
+    input num_block_change,
+    input i_2,                   // Control signal
+    input [15:0] pix,            // Incoming pixel value
+    output reg [15:0] out_pix    // Stores the max pixel value
+);
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            out_pix <= 16'b0;  // Ensure proper reset
+        else if(num_block_change) out_pix<=0;
+        else if ((pix > out_pix) && i_2) // Use logical AND (&&)
+            out_pix <= pix;
     end
 endmodule
