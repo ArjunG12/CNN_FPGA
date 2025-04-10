@@ -144,6 +144,7 @@ However, there's a performance issue:
 - But loading pixel values from memory takes around 6 CC.
   
 This means the processor must stall between operations, waiting for data to be fetched before continuing — a clear inefficiency.
+
 **The Solution: Pipelining with Interleaved Blocks**
 
 To eliminate stalling, we pipeline the process across multiple 8×8 blocks:
@@ -164,6 +165,7 @@ We extend this by processing multiple 8×8 blocks in parallel, each with its own
 As shown in this waveform the final 10 values(see the output_FLx values)come after around 2.6ms(in simulations) and we can take the maximum of the these values to find which digit is the input
 ![Screenshot from 2025-04-03 02-44-47](https://github.com/user-attachments/assets/a3d105dd-021a-4ea9-9628-f5ba4f1324dd)
 The design works as intended as I verified it on a Zedboard. I connected it with VIO to get the following output:
+
 ![Screenshot from 2025-04-10 22-32-49](https://github.com/user-attachments/assets/bd004b42-844b-4670-8a66-49a56aa62f05)
 ![Screenshot from 2025-04-10 22-32-38](https://github.com/user-attachments/assets/16b6244f-eba9-4fc8-b451-129b6704df23)
 ![image](https://github.com/user-attachments/assets/521da28a-11e6-44fb-8582-278ec1ab9b5e)
