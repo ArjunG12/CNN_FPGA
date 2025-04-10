@@ -126,3 +126,36 @@ This way:
 1. We don’t store the full 64×64 convolution or ReLU output.
 2. We only keep temporary values while processing one 8×8 block at a time.
 3. Memory usage is significantly reduced, and computation can be done in a streamed, block-wise manner.
+
+
+### Pipelining the process
+So far, the accelerated CNN algorithm works by:
+1. Performing convolution on an 8×8 block,
+2. Passing the result through ReLU,
+3. Applying max pooling to extract a single value,
+4. Feeding that directly into the fully connected (FC) layer.
+
+This pipeline avoids storing intermediate 64×64 matrices, reducing memory usage significantly.
+
+**The Performance Bottleneck**
+
+However, there's a performance issue:
+- Processing 3 pixel values (in the ALU + conv → ReLU → max pool) takes about 10 clock cycles (CC).
+- But loading pixel values from memory takes around 6 CC.
+  
+This means the processor must stall between operations, waiting for data to be fetched before continuing — a clear inefficiency.
+**The Solution: Pipelining with Interleaved Blocks**
+
+To eliminate stalling, we pipeline the process across multiple 8×8 blocks:
+- While Block A's data is being processed (conv, ReLU, etc.),
+- We preload pixel values for Block B into another processing unit.
+- Then, we go back to Block A, input the next set of pixels,
+- And repeat this interleaved flow.
+This allows one block to be in the compute stage while another is in the load stage, fully utilizing the available hardware at all times
+
+**Scaling Up with Parallel ALUs**
+
+We extend this by processing multiple 8×8 blocks in parallel, each with its own ALU pipeline:
+- Each ALU handles one block at a time,
+- All pipelines run concurrently without idle time,
+- This ensures no stalling and maximizes throughput.
