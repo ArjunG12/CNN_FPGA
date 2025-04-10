@@ -19,10 +19,14 @@ Acts as a buffer from the padding layer to  the convolution layer. Inputs 1-pixe
 ![image](https://github.com/user-attachments/assets/3cf5292c-fc4f-47e1-9323-89319afe813e)
 (updated it such that each addr value matches with c value)
 
-## Convolution layer
+## ALU layer
 
-Inputs- clk, rst, [23:0]pix, [6:0]count_i, [6:0]count_j
-Outputs- [11:0] out_pix
+Used for filter multiplication with pixel values.
+Inputs- clk, [23:0] pix
+Outputs- [47:0] out_pix
 
-If count_i is given 3 values in ascending order then it will return the convolution value after the 3 values have been passed as seen in the figure.
-![image](https://github.com/user-attachments/assets/dd5c956e-c18f-42d2-b856-d364950845ee)
+Takes 3 filter values from Buffer and then multiply it with filter values according to the convolution logic.
+![image](https://github.com/user-attachments/assets/ae6e37d8-9cea-4368-8650-7f4f0412829c)
+
+
+
