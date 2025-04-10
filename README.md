@@ -159,3 +159,8 @@ We extend this by processing multiple 8×8 blocks in parallel, each with its own
 - Each ALU handles one block at a time,
 - All pipelines run concurrently without idle time,
 - This ensures no stalling and maximizes throughput.
+
+## Results:
+As shown in this waveform the final 10*1 values come after around 2.6ms(in simulations) and we can take the maximum of the these values to find which digit is the input
+![image](https://github.com/user-attachments/assets/6e930ff1-c410-464c-b6fc-f363ef2970f6)
+
