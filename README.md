@@ -98,6 +98,31 @@ Then, I slide the filter to the right (e.g., to a35) and repeat the same process
 
 This approach allows for a more memory-efficient and potentially faster implementation, especially when data is streamed row-by-row or when full patches are not readily available.
 
-### Optimizing intermidatery storage elements
+### Optimizing intermidatery storage elements:
 
-In stardard flow, we compute the output of the conv layer (output is 64*64 matrix), then we pass it through Relu(output is 64*64 matrix) and then finally through MaxPool layer(output is 8*8 matrix). If we store the itermidatery matrixes then it will be too memory expensive. Thing to note here is that one output of the pooling layer depends on 8*8 subsection on the orignal image. For example output at the first index of 
+**In a Standard CNN workflow:**
+1. We first compute the full convolution output — e.g., a 64×64 feature map.
+2. This is passed through a ReLU activation, resulting in another 64×64 matrix.
+3. Then we apply max pooling (e.g., with an 8×8 window and stride 8), which reduces the output to an 8×8 matrix.
+4. This means we need to store large intermediate matrices (64×64 for both convolution and ReLU outputs), which can be very memory-intensive.
+   
+    Also, note: each value in the 8×8 pooled output corresponds to a max value over an 8×8 region from the original 64×64 convolution output.
+    For example, the pooling output at (0, 0) depends on all convolution values in the region from (0,0) to (7,7).
+After pooling, this 8×8 matrix is usually flattened into a 64×1 vector and passed to a fully connected layer (e.g., producing a 10×1 output for classification).
+
+**My Optimized Implementation:**
+
+In my custom design, I avoid storing large intermediate matrices by fusing the convolution, ReLU, and pooling steps on the fly.
+
+Here's how it works:
+
+For each 8×8 block in the input image:
+1. Compute the convolution outputs only for this block.
+2. Immediately apply ReLU to these values.
+3. Track the maximum value during this process (for pooling).
+4. Once the entire block is processed, directly pass this max value as the corresponding input to the fully connected layer.
+
+This way:
+1. We don’t store the full 64×64 convolution or ReLU output.
+2. We only keep temporary values while processing one 8×8 block at a time.
+3. Memory usage is significantly reduced, and computation can be done in a streamed, block-wise manner.
