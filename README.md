@@ -1,5 +1,5 @@
 # CNN_FPGA
-Implementation of simple CNN architecture on FPGA
+Implementation of accelerated CNN architecture on FPGA
 
 ## Padding layer
 
