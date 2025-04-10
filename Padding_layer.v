@@ -29,72 +29,61 @@
 //c- 3 N counter
 module padding(
     input clk,
+    input clk_2,
     input rst,
     input [6:0] count_i,
     input [6:0] count_j,
     input [3:0] pad_x,
     input [3:0] pad_y,
-    output reg [12:0] addr,
+    output [12:0] addr,
     output reg [1:0] c
 );
-    reg r;
+
+    // Internal registers to detect changes in count_i and count_j
     reg [6:0] i, j;
 
-    // Main always block for state control and address calculation
+    wire coords_changed = (i != count_i) || (j != count_j);
+
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            c <= 2'b00;
-            addr <= 13'd0;
-            r <= 1'b0;
             i <= 7'd0;
             j <= 7'd0;
         end else begin
-            // Detect changes in `i` or `j`
-            r <= |(i ^ count_i) | |(j ^ count_j);
             i <= count_i;
             j <= count_j;
-
-            // Reset `c` and `r` when `r` is asserted
-            if (r) begin
-                c <= 2'b00;
-            end else begin
-                // Update `c` cyclically
-                case (c)
-                    2'b00: c <= 2'b01;
-                    2'b01: c <= 2'b10;
-                    2'b10: c <= 2'b00;
-                    default: c <= 2'b00;
-                endcase
-
-                // Address calculation based on conditions
-                if (count_i < pad_x) begin
-                    addr <= 13'd0;
-                end else if (pad_y > (2 + count_j)) begin
-                    addr <= 13'd0;
-                end else if (pad_y == (2 + count_j)) begin
-                    case (c)
-                        2'b00: addr <= 13'd0;
-                        2'b01: addr <= 13'd0;
-                        2'b10: addr <= count_i - pad_x + 64 * (count_j - pad_y + 2);
-                        default: addr <= 13'd0;
-                    endcase
-                end else if (pad_y == (1 + count_j)) begin
-                    case (c)
-                        2'b00: addr <= 13'd0;
-                        2'b01: addr <= count_i - pad_x + 64 * (count_j - pad_y + 1);
-                        2'b10: addr <= count_i - pad_x + 64 * (count_j - pad_y + 2);
-                        default: addr <= 13'd0;
-                    endcase
-                end else begin
-                    case (c)
-                        2'b00: addr <= count_i - pad_x + 64 * (count_j - pad_y);
-                        2'b01: addr <= count_i - pad_x + 64 * (count_j - pad_y + 1);
-                        2'b10: addr <= count_i - pad_x + 64 * (count_j - pad_y + 2);
-                        default: addr <= 13'd0;
-                    endcase
-                end
-            end
         end
     end
-endmodule
 
+    // Cycle `c` across 0 → 1 → 2 → 3 → 0 on no change in i/j
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            c <= 2'b00;
+        else if (coords_changed)
+            c <= 2'b00;
+        else
+            c <= c + 1;
+    end
+
+    // Padding logic for 3x3 kernel window access
+    wire in_padding = (count_i < pad_x || count_j < pad_y);
+    wire is_top = (count_j == pad_y);
+    wire is_mid = (count_j == pad_y + 1);
+
+    wire [12:0] base_addr_0 = (count_i - pad_x) + 64 * (count_j - pad_y);
+    wire [12:0] base_addr_1 = (count_i - pad_x) + 64 * (count_j - pad_y + 1);
+    wire [12:0] base_addr_2 = (count_i - pad_x) + 64 * (count_j - pad_y + 2);
+
+    assign addr = (c < 3) ? (
+        in_padding                        ? 13'd0 :
+        is_top && c == 2                 ? base_addr_2 :
+        is_mid ? (
+            (c == 0)                     ? 13'd0 :
+            (c == 1)                     ? base_addr_1 :
+            (c == 2)                     ? base_addr_2 : 13'd0
+        ) :
+        (c == 0)                         ? base_addr_0 :
+        (c == 1)                         ? base_addr_1 :
+        (c == 2)                         ? base_addr_2 : 13'd0
+    ) : 13'd0;
+
+endmodule
