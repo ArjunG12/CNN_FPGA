@@ -22,48 +22,36 @@
 
 module Conv1(
     input clk,
+    input clk_8_5,
     input rst,
-    input [23:0] pix,
-    input [6:0] count_i,
-    input [6:0] count_j,
-    output [11:0] out_pix
+    input num_block_change,
+    input enable,
+    input [47:0] pix,
+    output [15:0] out_pix
 );
 
-    reg [35:0] pixel;
-    wire [7:0] pix1, pix2, pix3;
-    reg i_change, j_change;
-    reg [6:0] i, j;
-
-    parameter [2:0] filter1 = 3'd0, filter2 = 3'd1, filter3 = 3'd0,
-                    filter4 = 3'd1, filter5 = 3'd2, filter6 = 3'd1,
-                    filter7 = 3'd0, filter8 = 3'd1, filter9 = 3'd0;
-
-    assign pix1 = pix[7:0];
-    assign pix2 = pix[15:8];
-    assign pix3 = pix[23:16];
-    assign out_pix = pixel[35:24];
-
+    reg [47:0] pixel;
+    wire [15:0] p1,p2,p3;
+    
     always @(posedge clk or posedge rst) begin
-        if (rst) begin
+        if (rst) 
+        begin
             pixel <= 0;
-            i <= 0;
-            j <= 0;
-            i_change <= 0;
-            j_change <= 0;
-        end else begin
-            i_change <= |(i ^ count_i);
-            j_change <= |(j ^ count_j);
-            i <= count_i;
-            j <= count_j;
-
-            if (j_change || i_change) begin
-                pixel[11:0] <= filter1 * pix1 + filter4 * pix2 + filter7 * pix3;
-                pixel[23:12] <= filter2 * pix1 + filter5 * pix2 + filter8 * pix3 + pixel[11:0];
-                pixel[35:24] <= filter3 * pix1 + filter6 * pix2 + filter9 * pix3 + pixel[23:12];
-            end
+        end 
+        else if (num_block_change)pixel<=0;
+        else if(enable) begin
+                pixel[15:0] <= p1;
+                pixel[31:16] <= p2;
+                pixel[47:32] <= p3;
         end
     end
+    assign out_pix=pixel[47:32];
+    assign p1=pix[15:0];
+    assign p2=pix[31:16] + pixel[15:0];
+    assign p3=pix[47:32] + pixel[31:16];
+    //c_addsub_0 a5(pix[33:17],pixel[16:0],clk,p2);
+    //c_addsub_0 a8(pix[50:34],pixel[33:17],clk,p3);
+    
 
+    
 endmodule
-
-
